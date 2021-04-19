@@ -94,6 +94,7 @@ class AlienInvasion:
         self.stats.reset_stats()
         self.stats.game_active = True
         self.sb.prep_score()
+        self.sb.prep_level()
 
         # Get rid of any remaining aliens and bullets.
         self.aliens.empty()
@@ -118,7 +119,7 @@ class AlienInvasion:
         # Determinate the number of rows of aliens that fit on the screen.
         ship_height = self.ship.rect.height
         available_space_y = (self.settings.screen_height - 
-                                (3 * alien_height) - ship_height)
+                                (3 * alien_height) - ship_height - 50)
         number_rows = available_space_y // (2 * alien_height)
 
         # Create the full fleet of aliens.
@@ -132,7 +133,7 @@ class AlienInvasion:
             alien_width, alien_height = alien.rect.size
             alien.x = alien_width + 2 * alien_width  * alien_number
             alien.rect.x = alien.x
-            alien.rect.y = alien.rect.height + 2 * alien.rect.height * row_number
+            alien.rect.y = alien.rect.height + 2 * alien.rect.height * row_number + 50
             self.aliens.add(alien)
 
     def _update_aliens(self):
@@ -193,8 +194,7 @@ class AlienInvasion:
         """Respond to bullet-alien collisions."""
         # Remove any bullets and aliens that have collided.
         collisions = pygame.sprite.groupcollide(
-            self.bullets, self.aliens, True, True
-        )
+            self.bullets, self.aliens, True, True)
 
         if collisions:
             for aliens in collisions.values():
@@ -206,13 +206,18 @@ class AlienInvasion:
             # Destroy existing bullets and create new fleet.
             self.bullets.empty()
             self._create_fleet()        
-            self.settings.increase_speed()        
+            self.settings.increase_speed()    
+
+            # Increase level.
+            self.stats.level += 1
+            self.sb.prep_level()    
 
     def _ship_hit(self):
         """Respond to the ship being hit by an alien."""
         if self.stats.ships_left > 0:
-            # Decrement ships left.
+            # Decrement ships left and update scoreboard.
             self.stats.ships_left -= 1
+            self.sb.prep_ships()
 
             # Get rid of any remaining aliens and bullets.
             self.aliens.empty()
